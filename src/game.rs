@@ -120,6 +120,29 @@ impl RoomEventHandler for GameEventHandler {
   }
 
   async fn on_room_full(&self, ctx: &Context) {
+    // If game state already exists, this is a reconnection — send current state to rejoining player
+    if let Some(state) = ctx.get_custom_state::<GameState>().await {
+      tracing::info!(
+        "Player {} reconnected to room {}",
+        ctx.user_id(),
+        ctx.room_id()
+      );
+      let _ = ctx
+        .send_to(
+          ctx.user_id(),
+          GameEvent::GameRejoined {
+            naughts: state.naughts.clone(),
+            crosses: state.crosses.clone(),
+            updated_board: state.board.clone(),
+            squares_winner: state.squares_winner.clone(),
+            history: state.board_history(),
+            next_board: state.next_board,
+          },
+        )
+        .await;
+      return;
+    }
+
     let mut members = ctx.get_room_members().await;
     if members.len() == 2 {
       members.shuffle(&mut rand::thread_rng());
@@ -146,16 +169,6 @@ impl RoomEventHandler for GameEventHandler {
         user_id: user_id.to_string(),
       })
       .await;
-    let members = ctx.get_room_members().await;
-    if !members.is_empty() {
-      let winner = members.first().cloned();
-      let _ = ctx
-        .broadcast(GameEvent::GameOver {
-          winner,
-          reason: "Opponent disconnected".to_string(),
-        })
-        .await;
-    }
   }
 
   async fn on_room_empty(&self, room_id: &str) {

@@ -62,4 +62,12 @@ pub enum GameEvent {
   InvalidMove {
     reason: String,
   },
+  GameRejoined {
+    naughts: String,
+    crosses: String,
+    updated_board: Vec<Vec<Option<char>>>,
+    squares_winner: Vec<Option<char>>,
+    history: Vec<Vec<Vec<Option<char>>>>,
+    next_board: Option<u8>,
+  },
 }
