@@ -69,7 +69,7 @@ pub struct GameState {
 
 impl GameState {
   pub fn new(naughts: String, crosses: String) -> Self {
-    let current_turn = crosses.clone(); // 'x' (crosses) goes first
+    let current_turn = naughts.clone(); // 'o' (naughts) goes first
     Self {
       board: vec![vec![None; 9]; 9],
       squares_winner: vec![None; 9],
